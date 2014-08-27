@@ -43,29 +43,21 @@ canvas {
 
 	// TO DO:
 
-	// kolory bonusów: Earth zielony, Water niebieski , Air szary and Fire czerwony
-	// rysowanie bonusów
-	// rysowanie przeciwników x, y, typ
 	// rysowanie bossa
-	// pomoc: "use arrows and spacebar"
-	// koniec wyswietlanie score i restart
+	// koniec po zabiciu bosa   wy    swietlanie score i resta   rt
 
 	// efekty graficzne i muzyczne
 
 // Start game
 document.getElementById('p').addEventListener("click", start);
 // Press button
-window.addEventListener('keyup',(function(i){if(i.keyCode==37||i.keyCode==39)go='';}));
+window.addEventListener('keydown',(function(i){if(i.keyCode==37)go='l';if(i.keyCode==39)go='r';i.preventDefault();}));
 // Release button
-window.addEventListener('keydown',(function(i){if(i.keyCode==37)go='l';if(i.keyCode==39)go='r';if(i.keyCode==32)entities[entities.length]={type:'bullet1',x:player,y:340,color:color};i.preventDefault();}));
+window.addEventListener('keyup',(function(i){if(i.keyCode==37||i.keyCode==39)go='';if(i.keyCode==32)entities[entities.length]={type:'bullet1',x:player,y:340,color:color};}));
 
-var score = 0;
-var end = 1;
-var player = 320;
-var go = '';
-var color = '#fff';
-var colors = ['#080','#008','#333','#800'];
-var entities = [];
+
+var score, player, go, color, entities, end=1;
+var colors = ['#080','#00c','#333','#800'];
 var canvas = document.getElementById('p');
 var context = canvas.getContext('2d');
 context.imageSmoothingEnabled = false;
@@ -84,9 +76,12 @@ context.font = '30px Arial';
 
 function start(){
 	if(end==1){
-		end = 0;
 		score = 0;
+		end = 0;
 		player = 320;
+		go = '';
+		color = '#fff';
+		entities = [];
 		tick();
 	}
 }
@@ -123,33 +118,36 @@ function tick(){
 		context.fillStyle = color;
 		context.strokeStyle = color;
 		context.beginPath();
-		context.arc(player-40, 340, 10, 0, Math.PI * 2);
-		context.arc(player+40, 340, 10, 0, Math.PI * 2);
-		context.moveTo(player-40, 350);
-		context.lineTo(player+40, 350);
+		context.arc(player-30, 340, 10, 0, Math.PI * 2);
+		context.arc(player+30, 340, 10, 0, Math.PI * 2);
+		context.moveTo(player-30, 350);
+		context.lineTo(player+30, 350);
 		context.stroke();
 		context.fill();
 		context.closePath();
 		context.fillStyle = '#fff';
 		context.strokeStyle = '#fff';
 		// spawn
-
 		if(Math.floor(Math.random()*500)>498) entities[entities.length]={type:'bonus',x:Math.random()*1000%340+160,y:1,color:colors[Math.floor(Math.random()*4)]};
+		if(Math.floor(Math.random()*500)>495) entities[entities.length]={type:'enemy'+Math.floor(Math.random()*3),x:Math.random()*1000%320+180,y:1};
+		if(score==500) console.log('boss');
 		// shoot
 
 		// animate
-		window.setTimeout(tick, 1000/60 );
-	}
+		window.requestAnimationFrame(tick);
+	} else if(end==1) ending(0);
+	else ending(1);
 }
 
 function draw(object){
-	// tu realizacja wszystkich latających obiektów
-	// zderzenia też
-	if(object.y>0 && object.y<360){
+	if(object.y>0 && object.y<350){
 		if(object.type=='bullet1'){
+			var data = context.getImageData(object.x, object.y, 1, 1).data;
+			if(data[0]==255&&data[1]==255&&data[2]==255) console.log("Trafiony, zatopiony!");
 			context.fillStyle = object.color;
 			context.beginPath();
-			context.arc(object.x, object.y, 5+(object.y/100), 0, Math.PI * 2);
+			context.arc(object.x, object.y, 3+(object.y/100), 0, Math.PI * 2);
+			context.arc(object.x, object.y+2, 3+(object.y/100), 0, Math.PI * 2);
 			context.fill();
 			context.closePath();
 			context.fillStyle = '#fff';
@@ -157,14 +155,46 @@ function draw(object){
 			object.x-=(object.x-320)/100;
 		}
 		if(object.type=='bullet2'){
-			context.fillStyle = '';
 			context.beginPath();
 			context.arc(object.x, object.y, 5+(object.y/100), 0, Math.PI * 2);
 			context.fill();
 			context.closePath();
-			context.fillStyle = '#fff';
 			object.y+=5;
 			object.x+=(object.x-320)/100;
+		}
+		if(object.type=='enemy0'){
+			context.beginPath();
+			context.moveTo(object.x-20, object.y-20);
+			context.arc(object.x, object.y, 5, 1, 2);
+			context.moveTo(object.x+20, object.y+20);
+			context.arc(object.x, object.y, 5, 1, 2, 1);
+			context.fill();
+			context.closePath();
+			object.y++;
+			object.x+=(object.x-320)/500;
+			if(object.y>320&&object.x+40>player&&object.x-40<player) end=1;
+		}
+		if(object.type=='enemy1'){
+			context.beginPath();
+			context.moveTo(object.x+20, object.y-20);
+			context.arc(object.x, object.y, 5, 1, 2);
+			context.moveTo(object.x-20, object.y+20);
+			context.arc(object.x, object.y, 5, 1, 2, 1);
+			context.fill();
+			context.closePath();
+			object.y++;
+			object.x+=(object.x-320)/500;
+			if(object.y>320&&object.x+40>player&&object.x-40<player) end=1;
+		}
+		if(object.type=='enemy2'){
+			context.beginPath();
+			context.moveTo(object.x-30-(object.y/100), object.y);
+			context.bezierCurveTo(object.x, object.y+20, object.x, object.y+20, object.x+30-(object.y/100), object.y);
+			context.stroke();
+			context.closePath();
+			object.y++;
+			object.x+=(object.x-320)/500;
+			if(object.y>340&&object.x+40>player&&object.x-40<player) end=1;
 		}
 		if(object.type=='bonus'){
 			context.fillStyle = object.color;
@@ -175,14 +205,14 @@ function draw(object){
 			context.fillStyle = '#fff';
 			object.y+=2;
 			object.x+=(object.x-320)/250;
-			if(object.y>340&&object.x+60>player&&object.x-60<player){
+			if(object.y>340&&object.x+40>player&&object.x-40<player){
 				color = object.color;
 				object.y=0;
+				score++;
 			}
 		}
-	} else {
-		entities.splice(entities.indexOf(object), 1);
-	}
+	// Deleting of old entities
+	} else entities.splice(entities.indexOf(object), 1);
 }
 	</script>
 </body>
