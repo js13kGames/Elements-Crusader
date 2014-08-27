@@ -166,8 +166,8 @@ function fire(o){
 		context.closePath();
 		if(o.d==1) o.y-=5;
 		else o.y+=5;
-		if(o.x>340) o.x--;
-		else if(o.x<300) o.x++;
+		if(o.x>320) o.x-=(1+o.x/1000);
+		else (o.x<320) o.x+=(1+o.x/1000);
 		return o;
 	}
 }
