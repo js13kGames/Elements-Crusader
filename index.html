@@ -36,19 +36,36 @@ canvas {
 	</style>
 </head>
 <body>
-	<canvas id="play" width="640" height="360">
+	<canvas id="p" width="640" height="360">
 		Your browser doesn't support canvas! :(
 	</canvas>
 	<script type="text/javascript">
-document.getElementById('play').addEventListener("click", start);
 
-var score = '0';
-var end = '0';
-var x = 320;
+	// TO DO:
+
+	// kolory bonusów: Earth zielony, Water niebieski , Air szary and Fire czerwony
+	// rysowanie bonusów
+	// rysowanie przeciwników x, y, typ
+	// rysowanie bossa
+	// pomoc: "use arrows and spacebar"
+	// koniec wyswietlanie score i restart
+
+	// efekty graficzne i muzyczne
+
+// Start game
+document.getElementById('p').addEventListener("click", start);
+// Press button
+window.addEventListener('keyup',(function(i){if(i.keyCode==37||i.keyCode==39)go='';}));
+// Release button
+window.addEventListener('keydown',(function(i){if(i.keyCode==37)go='l';if(i.keyCode==39)go='r';if(i.keyCode==32)entities[entities.length]={x: player, y: 340, d:1};i.preventDefault();}));
+
+var score = 0;
+var end = 1;
+var player = 320;
 var go = '';
 var color = '#fff';
-var fires = [];
-var canvas = document.getElementById('play');
+var entities = [];
+var canvas = document.getElementById('p');
 var context = canvas.getContext('2d');
 context.imageSmoothingEnabled = false;
 context.webkitImageSmoothingEnabled = false;
@@ -60,31 +77,17 @@ context.font = '30px Arial';
 
 context.fillText("Elements .-. Crusader", 320, 140);
 context.fillText("S74r7!", 320, 170);
+context.font = '20px Arial';
+context.fillText("use arrows and spacebar", 320, 210);
+context.font = '30px Arial';
 
 function start(){
-	end = '0';
-	tick();
-	// TO DO:
-
-	// rysowanie pocisków
-	// rysowanie bonusów
-	// rysowanie przeciwników x, y, typ
-	// rysowanie bossa
-	// pomoc: "use arrows and spacebar"
-	// koniec wyswietlanie score i restart
-}
-
-function background(){
-	context.clearRect(0, 0, canvas.width, canvas.height);
-	context.beginPath();
-	context.moveTo(0, 360);
-	context.lineTo(140, 0);
-	context.moveTo(640, 360);
-	context.lineTo(500, 0);
-	context.fill();
-	context.stroke();
-	context.closePath();
-	context.fillText(score, 320, 30);
+	if(end==1){
+		end = 0;
+		score = 0;
+		player = 320;
+		tick();
+	}
 }
 
 function ending(win){
@@ -94,81 +97,55 @@ function ending(win){
 	else context.fillText("You lose!", 320, 140);
 	context.fillText("Score: "+score, 320, 170);
 	context.fillText("Click to reS74r7!", 320, 200);
-	score = '0';
-	x = '320';
-}
-
-function player(){
-	context.fillStyle = color;
-	context.strokeStyle = color;
-	context.beginPath();
-	context.arc(x-40, 340, 10, 0, Math.PI * 2);
-	context.arc(x+40, 340, 10, 0, Math.PI * 2);
-	context.moveTo(x-40, 350);
-	context.lineTo(x+40, 350);
-	context.stroke();
-	context.fill();
-	context.closePath();
-	context.fillStyle = '#fff';
-	context.strokeStyle = '#fff';
 }
 
 function tick(){
-	if(end == '0') {
-		if(go == 'l' && x>60) x-=3;
-		else if(go == 'r' && x<580) x+=3;
-		background();
-		player();
-		// odczytywanie tabeli fires
-		var i = -1;
-		while(fires[++i]) fire(fires[i]);
-		//score++;
-		window.setTimeout(tick, 1000/30 ); // 60
-	}
-}
-
-window.addEventListener('keydown',click,false);
-window.addEventListener('keyup',noclick,false);
-
-function click(e) {
-	switch(e.keyCode){
-		case 37:
-			go = 'l';
-		break;
-		case 39:
-			go = 'r';
-		break;
-		case 32:
-			//fire({x: x, y: 340, d:1});
-			fires[fires.length] = {x: x, y: 340, d:1};
-		break;
-	}
-	e.preventDefault();
-}
-
-function noclick(e) {
-	switch(e.keyCode){
-		case 37:
-			go = '';
-		break;
-		case 39:
-			go = '';
-		break;
-	}
-}
-
-function fire(o){
-	if(o.y>0 && o.y<360){
+	if(end== '0') {
+		if(go == 'l' && player>60) player-=3;
+		else if(go == 'r' && player<580) player+=3;
+		context.clearRect(0, 0, canvas.width, canvas.height);
 		context.beginPath();
-		context.arc(o.x, o.y, 5+(o.y/100), 0, Math.PI * 2);
+		context.moveTo(0, 360);
+		context.lineTo(140, 0);
+		context.moveTo(640, 360);
+		context.lineTo(500, 0);
+		context.fill();
+		context.stroke();
+		context.closePath();
+		context.fillText(score, 320, 30);
+		context.fillStyle = color;
+		context.strokeStyle = color;
+		context.beginPath();
+		context.arc(player-40, 340, 10, 0, Math.PI * 2);
+		context.arc(player+40, 340, 10, 0, Math.PI * 2);
+		context.moveTo(player-40, 350);
+		context.lineTo(player+40, 350);
 		context.stroke();
 		context.fill();
 		context.closePath();
-		if(o.d==1) o.y-=5;
-		else o.y+=5;
-		o.x-=(o.x-320)/100;
-		return o;
+		context.fillStyle = '#fff';
+		context.strokeStyle = '#fff';
+		var i = -1;
+		while(entities[++i]) fire(entities[i]);
+		// spawn potworów i bosa przy score 500
+		window.setTimeout(tick, 1000/60 ); // 60
 	}
+}
+
+function fire(object){
+	// tu realizacja wszystkich latających obiektów
+	// zderzenia też
+	if(object.y>0 && object.y<360){
+		context.beginPath();
+		context.arc(object.x, object.y, 5+(object.y/100), 0, Math.PI * 2);
+		context.stroke();
+		context.fill();
+		context.closePath();
+		if(object.d==1) object.y-=5;
+		else object.y+=5;
+		object.x-=(object.x-320)/100;
+	}
+	return object;
 }
 	</script>
 </body>
