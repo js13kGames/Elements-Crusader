@@ -43,7 +43,7 @@ canvas {
 
 	// TO DO:
 
-	// kolizje
+	// strzelanie u kosmitów
 	// rysowanie bossa
 	// koniec po zabiciu bosa wyswietlanie score i restart
 
@@ -115,13 +115,49 @@ function tick(){
 		if(Math.floor(Math.random()*500)>495) entities[entities.length]={type:'enemy'+Math.floor(Math.random()*3),x:Math.random()*1000%320+180,y:1};
 		if(score==500) boss();
 		// colisions
+		var i = entities.length-1, j;
+		do {
+			j = 0;
+			while (j < i) {
+				if(!colide(entities[j],entities[i])) collide(entities[i],entities[j]);
+				j++;
+			}
+		} while (i--);
 		// draw
-		var i = -1;
+		i = -1;
 		while(entities[++i]) draw(entities[i]);
 		// animate
 		window.requestAnimationFrame(tick);
 	} else if(end==1) ending(0);
 	else ending(1);
+}
+
+function collide(first,second){
+	// player and enemy
+	if(first.type=='player' && (second.type=='enemy0' || second.type=='enemy1' || second.type=='enemy2') && second.y>320 && second.x+40>first.x && second.x-40<first.x){
+		end = 1;
+		return 1;
+	}
+	// player and bullet2
+	if(first.type=='player' && second.type=='bullet2' && second.y>340 && second.x+40>first.x && second.x-40<first.x){
+		end = 1;
+		return 1;
+	}
+	// player and bonus
+	if(first.type=='player' && second.type=='bonus' && second.y>340 && second.x+40>first.x && second.x-40<first.x){
+		first.color = second.color;
+		second.y=0;
+		score++;
+		return 1;
+	}
+	// enemy and bullet1
+	if(first.type=='bullet1' && (second.type=='enemy0' || second.type=='enemy1' || second.type=='enemy2') && second.x+20>first.x && second.x-20<first.x && second.y+20>first.y && second.y-20<first.y){
+		second.y=0;
+		first.y=0;
+		score++;
+		return 1;
+	}
+	return 0;
 }
 
 function draw(object){
@@ -169,7 +205,6 @@ function draw(object){
 			context.closePath();
 			object.y++;
 			object.x+=(object.x-320)/500;
-			//if(object.y>320&&object.x+40>player&&object.x-40<player) end=1;
 		}
 		if(object.type=='enemy1'){
 			context.beginPath();
@@ -181,7 +216,6 @@ function draw(object){
 			context.closePath();
 			object.y++;
 			object.x+=(object.x-320)/500;
-			//if(object.y>320&&object.x+40>player&&object.x-40<player) end=1;
 		}
 		if(object.type=='enemy2'){
 			context.beginPath();
@@ -191,7 +225,6 @@ function draw(object){
 			context.closePath();
 			object.y++;
 			object.x+=(object.x-320)/500;
-			//if(object.y>340&&object.x+40>player&&object.x-40<player) end=1;
 		}
 		if(object.type=='bonus'){
 			context.fillStyle = object.color;
@@ -202,11 +235,6 @@ function draw(object){
 			context.fillStyle = '#fff';
 			object.y+=2;
 			object.x+=(object.x-320)/250;
-			/*if(object.y>340&&object.x+40>entities[0].x&&object.x-40<entities[0].x){
-				entities[0].color = object.color;
-				object.y=0;
-				score++;
-			}*/
 		}
 	// Deleting of old entities
 	} else entities.splice(entities.indexOf(object), 1);
