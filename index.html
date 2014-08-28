@@ -119,7 +119,7 @@ function tick(){
 		do {
 			j = 0;
 			while (j < i) {
-				if(!colide(entities[j],entities[i])) collide(entities[i],entities[j]);
+				if(!collide(entities[j],entities[i])) collide(entities[i],entities[j]);
 				j++;
 			}
 		} while (i--);
