@@ -43,8 +43,9 @@ canvas {
 
 	// TO DO:
 
+	// kolizje
 	// rysowanie bossa
-	// koniec po zabiciu bosa   wy    swietlanie score i resta   rt
+	// koniec po zabiciu bosa wyswietlanie score i restart
 
 	// efekty graficzne i muzyczne
 
@@ -53,10 +54,10 @@ document.getElementById('p').addEventListener("click", start);
 // Press button
 window.addEventListener('keydown',(function(i){if(i.keyCode==37)go='l';if(i.keyCode==39)go='r';i.preventDefault();}));
 // Release button
-window.addEventListener('keyup',(function(i){if(i.keyCode==37||i.keyCode==39)go='';if(i.keyCode==32)entities[entities.length]={type:'bullet1',x:player,y:340,color:color};}));
+window.addEventListener('keyup',(function(i){if(i.keyCode==37||i.keyCode==39)go='';if(i.keyCode==32)entities[entities.length]={type:'bullet1',x:entities[0].x,y:340,color:entities[0].color};}));
 
 
-var score, player, go, color, entities, end=1;
+var score, go, entities, end=1;
 var colors = ['#080','#00c','#333','#800'];
 var canvas = document.getElementById('p');
 var context = canvas.getContext('2d');
@@ -78,10 +79,8 @@ function start(){
 	if(end==1){
 		score = 0;
 		end = 0;
-		player = 320;
 		go = '';
-		color = '#fff';
-		entities = [];
+		entities = [{type:'player',x:320,y:340,color:'#fff'}];
 		tick();
 	}
 }
@@ -97,8 +96,8 @@ function ending(win){
 
 function tick(){
 	if(end==0) {
-		if(go == 'l' && player>60) player-=3;
-		else if(go == 'r' && player<580) player+=3;
+		if(go == 'l' && entities[0].x>60) entities[0].x-=3;
+		else if(go == 'r' && entities[0].x<580) entities[0].x+=3;
 		// clean up canvas
 		context.clearRect(0, 0, canvas.width, canvas.height);
 		// drawing background
@@ -111,28 +110,14 @@ function tick(){
 		context.stroke();
 		context.closePath();
 		context.fillText(score, 320, 30);
-		// draw other
-		var i = -1;
-		while(entities[++i]) draw(entities[i]);
-		// drawing player in chosen color
-		context.fillStyle = color;
-		context.strokeStyle = color;
-		context.beginPath();
-		context.arc(player-30, 340, 10, 0, Math.PI * 2);
-		context.arc(player+30, 340, 10, 0, Math.PI * 2);
-		context.moveTo(player-30, 350);
-		context.lineTo(player+30, 350);
-		context.stroke();
-		context.fill();
-		context.closePath();
-		context.fillStyle = '#fff';
-		context.strokeStyle = '#fff';
 		// spawn
 		if(Math.floor(Math.random()*500)>498) entities[entities.length]={type:'bonus',x:Math.random()*1000%340+160,y:1,color:colors[Math.floor(Math.random()*4)]};
 		if(Math.floor(Math.random()*500)>495) entities[entities.length]={type:'enemy'+Math.floor(Math.random()*3),x:Math.random()*1000%320+180,y:1};
-		if(score==500) console.log('boss');
-		// shoot
-
+		if(score==500) boss();
+		// colisions
+		// draw
+		var i = -1;
+		while(entities[++i]) draw(entities[i]);
 		// animate
 		window.requestAnimationFrame(tick);
 	} else if(end==1) ending(0);
@@ -141,9 +126,21 @@ function tick(){
 
 function draw(object){
 	if(object.y>0 && object.y<350){
+		if(object.type=='player'){
+			context.fillStyle = object.color;
+			context.strokeStyle = object.color;
+			context.beginPath();
+			context.arc(object.x-30, object.y, 10, 0, Math.PI * 2);
+			context.arc(object.x+30, object.y, 10, 0, Math.PI * 2);
+			context.moveTo(object.x-30, object.y+10);
+			context.lineTo(object.x+30, object.y+10);
+			context.stroke();
+			context.fill();
+			context.closePath();
+			context.fillStyle = '#fff';
+			context.strokeStyle = '#fff';
+		}
 		if(object.type=='bullet1'){
-			var data = context.getImageData(object.x, object.y, 1, 1).data;
-			if(data[0]==255&&data[1]==255&&data[2]==255) console.log("Trafiony, zatopiony!");
 			context.fillStyle = object.color;
 			context.beginPath();
 			context.arc(object.x, object.y, 3+(object.y/100), 0, Math.PI * 2);
@@ -172,7 +169,7 @@ function draw(object){
 			context.closePath();
 			object.y++;
 			object.x+=(object.x-320)/500;
-			if(object.y>320&&object.x+40>player&&object.x-40<player) end=1;
+			//if(object.y>320&&object.x+40>player&&object.x-40<player) end=1;
 		}
 		if(object.type=='enemy1'){
 			context.beginPath();
@@ -184,7 +181,7 @@ function draw(object){
 			context.closePath();
 			object.y++;
 			object.x+=(object.x-320)/500;
-			if(object.y>320&&object.x+40>player&&object.x-40<player) end=1;
+			//if(object.y>320&&object.x+40>player&&object.x-40<player) end=1;
 		}
 		if(object.type=='enemy2'){
 			context.beginPath();
@@ -194,7 +191,7 @@ function draw(object){
 			context.closePath();
 			object.y++;
 			object.x+=(object.x-320)/500;
-			if(object.y>340&&object.x+40>player&&object.x-40<player) end=1;
+			//if(object.y>340&&object.x+40>player&&object.x-40<player) end=1;
 		}
 		if(object.type=='bonus'){
 			context.fillStyle = object.color;
@@ -205,14 +202,18 @@ function draw(object){
 			context.fillStyle = '#fff';
 			object.y+=2;
 			object.x+=(object.x-320)/250;
-			if(object.y>340&&object.x+40>player&&object.x-40<player){
-				color = object.color;
+			/*if(object.y>340&&object.x+40>entities[0].x&&object.x-40<entities[0].x){
+				entities[0].color = object.color;
 				object.y=0;
 				score++;
-			}
+			}*/
 		}
 	// Deleting of old entities
 	} else entities.splice(entities.indexOf(object), 1);
+}
+
+function boss(){
+
 }
 	</script>
 </body>
