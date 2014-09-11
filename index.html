@@ -17,6 +17,10 @@ body {
 
 canvas {
 	width: 90%;
+	position: absolute;
+	top: 0;
+	right: 5%;
+	left: 5%;
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
 	-khtml-user-select: none;
@@ -37,9 +41,9 @@ canvas {
 	<script src="jsfxr.js"></script>
 </head>
 <body>
-	<canvas id="p" width="640" height="360">
-		Your browser doesn't support canvas! :(
-	</canvas>
+	<canvas id="s" width="640" height="360"></canvas>
+	<canvas id="p" width="640" height="360"></canvas>
+	<canvas id="t" width="640" height="360"></canvas>
 	<script src="player.js"></script>
 	<script src="music.js"></script>
 	<script src="code.js"></script>
